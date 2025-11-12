@@ -44,6 +44,30 @@ app.post('/apikeyc/create', (req, res) => {
   }
 });
 
+app.post('/validate', (req, res) => {
+  const { apiKey } = req.body;
+
+  if (!apiKey) {
+    return res.status(400).json({
+      success: false,
+      message: 'API key tidak ditemukan dalam request body'
+    });
+  }
+
+  db.query('SELECT * FROM apikeys WHERE api_key = ?', [apiKey], (err, results) => {
+    if (err) {
+      console.error('Error saat validasi:', err);
+      return res.status(500).json({ success: false, message: 'Kesalahan server' });
+    }
+
+    if (results.length > 0) {
+      res.json({ success: true, message: 'API key valid!' });
+    } else {
+      res.status(401).json({ success: false, message: 'API key tidak valid!' });
+    }
+  });
+});
+
 app.post("/generate", (req, res) => {
   const apiKey = `sk-itumy-v1-api_${crypto.randomBytes(16).toString("hex")}`;
   const sql = "INSERT INTO apikeys (api_key) VALUES (?)";
