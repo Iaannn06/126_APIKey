@@ -45,10 +45,9 @@ app.post('/checkapi', (req, res) => {
       });
     }
 
-    // Pola prefix yang harus sesuai
+
     const prefix = 'sk-itumy-v1-api_';
 
-    // Cek format dan panjang key
     if (!apiKey.startsWith(prefix)) {
       return res.status(400).json({
         success: false,
@@ -58,7 +57,7 @@ app.post('/checkapi', (req, res) => {
 
     const rawPart = apiKey.replace(prefix, '');
 
-    // Cek apakah sisa key merupakan hex 64 karakter
+
     const isHex = /^[a-f0-9]{64}$/i.test(rawPart);
     if (!isHex) {
       return res.status(400).json({
@@ -67,7 +66,7 @@ app.post('/checkapi', (req, res) => {
       });
     }
 
-    // Kalau semua lolos validasi
+
     return res.json({
       success: true,
       message: 'API key valid'
@@ -81,7 +80,7 @@ app.post('/checkapi', (req, res) => {
   }
 });
 
-// Jalankan server
+
 app.listen(port, () => {
   console.log(`Server berjalan di http://localhost:${port}`);
 });
