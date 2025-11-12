@@ -2,12 +2,12 @@ const mysql = require('mysql2');
 
 const db = mysql.createConnection({
   host: 'localhost',
-  user: 'root',       
+  user: 'root',      
   password: 'Sumbodro060405!',       
   database: 'apikeydb' 
 });
 
-db.connect(err => {
+db.connect((err) => {
   if (err) {
     console.error('❌ Gagal konek ke database:', err);
   } else {

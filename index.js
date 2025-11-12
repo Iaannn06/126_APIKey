@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
+const db = require('./db'); // <-- tambahkan ini bro
 const app = express();
 const port = 3000;
 
@@ -13,7 +14,7 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 🔑 Route untuk generate API key dengan prefix
+// 🔑 Route untuk generate API key dan simpan ke DB
 app.post('/apikeyc/create', (req, res) => {
   try {
     const rawKey = crypto.randomBytes(32).toString('hex');
@@ -71,12 +72,13 @@ app.post('/checkapi', (req, res) => {
           message: 'API key tidak valid atau tidak terdaftar'
         });
       }
-       res.json({
+
+      res.json({
         success: true,
         message: 'API key valid dan terdaftar di database'
       });
     });
-  }catch (err) {
+  } catch (err) {
     console.error('Error checking API key:', err);
     res.status(500).json({
       success: false,
@@ -85,7 +87,6 @@ app.post('/checkapi', (req, res) => {
   }
 });
 
-
 app.listen(port, () => {
-  console.log(`Server berjalan di http://localhost:${port}`);
+  console.log(`🚀 Server berjalan di http://localhost:${port}`);
 });
