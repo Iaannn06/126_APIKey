@@ -76,7 +76,15 @@ app.post('/checkapi', (req, res) => {
         message: 'API key valid dan terdaftar di database'
       });
     });
+  }catch (err) {
+    console.error('Error checking API key:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Terjadi kesalahan saat memeriksa API key'
+    });
   }
+});
+
 
 app.listen(port, () => {
   console.log(`Server berjalan di http://localhost:${port}`);
