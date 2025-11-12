@@ -43,12 +43,11 @@ app.post('/apikeyc/create', (req, res) => {
   }
 });
 
-// ✅ Route untuk cek validitas API key
+
 app.post('/checkapi', (req, res) => {
   try {
     const { apiKey } = req.body;
 
-    // Cek apakah key dikirim
     if (!apiKey) {
       return res.status(400).json({
         success: false,
@@ -56,41 +55,28 @@ app.post('/checkapi', (req, res) => {
       });
     }
 
+    const query = 'SELECT * FROM apikeys WHERE api_key = ?';
+    db.query(query, [apiKey], (err, results) => {
+      if (err) {
+        console.error('❌ Error saat cek API key:', err);
+        return res.status(500).json({
+          success: false,
+          message: 'Terjadi kesalahan saat memeriksa API key'
+        });
+      }
 
-    const prefix = 'sk-itumy-v1-api_';
-
-    if (!apiKey.startsWith(prefix)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Format API key tidak valid'
+      if (results.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'API key tidak valid atau tidak terdaftar'
+        });
+      }
+       res.json({
+        success: true,
+        message: 'API key valid dan terdaftar di database'
       });
-    }
-
-    const rawPart = apiKey.replace(prefix, '');
-
-
-    const isHex = /^[a-f0-9]{64}$/i.test(rawPart);
-    if (!isHex) {
-      return res.status(400).json({
-        success: false,
-        message: 'API key tidak valid (harus 64 karakter hex)'
-      });
-    }
-
-
-    return res.json({
-      success: true,
-      message: 'API key valid'
-    });
-  } catch (err) {
-    console.error('Error checking API key:', err);
-    res.status(500).json({
-      success: false,
-      message: 'Terjadi kesalahan saat memeriksa API key'
     });
   }
-});
-
 
 app.listen(port, () => {
   console.log(`Server berjalan di http://localhost:${port}`);
