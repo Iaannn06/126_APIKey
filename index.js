@@ -19,9 +19,20 @@ app.post('/apikeyc/create', (req, res) => {
     const rawKey = crypto.randomBytes(32).toString('hex');
     const apiKey = `sk-itumy-v1-api_${rawKey}`;
 
-    res.json({
-      success: true,
-      apiKey: apiKey
+    const query = 'INSERT INTO apikeys (api_key) VALUES (?)';
+    db.query(query, [apiKey], (err, result) => {
+      if (err) {
+        console.error('❌ Gagal menyimpan API key:', err);
+        return res.status(500).json({
+          success: false,
+          message: 'Gagal menyimpan API key ke database'
+        });
+      }
+
+      res.json({
+        success: true,
+        apiKey: apiKey
+      });
     });
   } catch (err) {
     console.error('Error generate API key:', err);
