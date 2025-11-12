@@ -1,0 +1,18 @@
+const mysql = require('mysql2');
+
+const db = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',       
+  password: 'Sumbodro060405!',       
+  database: 'apikeydb' 
+});
+
+db.connect(err => {
+  if (err) {
+    console.error('❌ Gagal konek ke database:', err);
+  } else {
+    console.log('✅ Terkoneksi ke database MySQL');
+  }
+});
+
+module.exports = db;
