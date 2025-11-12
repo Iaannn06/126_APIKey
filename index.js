@@ -1,20 +1,20 @@
 const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
-const db = require('./db'); // <-- tambahkan ini bro
+const db = require('./db'); 
 const app = express();
 const port = 3000;
 
-// Middleware
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
-// Route utama kirim index.html
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 🔑 Route untuk generate API key dan simpan ke DB
+
 app.post('/apikeyc/create', (req, res) => {
   try {
     const rawKey = crypto.randomBytes(32).toString('hex');
