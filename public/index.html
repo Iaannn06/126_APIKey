@@ -1,138 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Create API Key</title>
-  <style>
-    body {
-      background-color: #0d0d0d;
-      color: #fff;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-
-    h1 {
-      margin-bottom: 20px;
-      color: #00bfff;
-      font-weight: 600;
-    }
-
-    button {
-      background-color: #00bfff;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      font-size: 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    button:hover {
-      background-color: #0099cc;
-    }
-
-    textarea {
-      margin-top: 20px;
-      width: 400px;
-      height: 100px;
-      border-radius: 10px;
-      border: 1px solid #444;
-      background-color: #1a1a1a;
-      color: #00ffcc;
-      font-size: 14px;
-      padding: 10px;
-      resize: none;
-    }
-
-    .copy-btn {
-      position: absolute;
-      right: 15px;
-      bottom: 15px;
-      background-color: #333;
-      border: none;
-      color: #00ffcc;
-      font-size: 14px;
-      cursor: pointer;
-      padding: 8px 12px;
-      border-radius: 6px;
-      transition: background 0.3s;
-    }
-
-    .copy-btn:hover {
-      background-color: #555;
-    }
-
-    .wrapper {
-      position: relative;
-    }
-
-    .error {
-      color: #ff5e5e;
-      margin-top: 10px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWS Prak 8 - Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <h1>Generate API Key</h1>
-  <button id="createBtn">Create API Key</button>
+<body class="bg-slate-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl border-t-4 border-blue-600">
+        <h1 class="text-2xl font-bold text-slate-800 mb-6">Daftar User & API Key</h1>
+        
+        <form id="registerForm" class="space-y-4">
+            <input type="text" id="firstName" class="w-full p-3 border rounded focus:ring-2 focus:ring-blue-500" placeholder="Nama Depan">
+            <input type="text" id="lastName" class="w-full p-3 border rounded focus:ring-2 focus:ring-blue-500" placeholder="Nama Belakang">
+            <input type="email" id="email" class="w-full p-3 border rounded focus:ring-2 focus:ring-blue-500" placeholder="Email">
+            
+            <div class="flex gap-2">
+                <input type="text" id="apiKey" readonly class="w-full p-3 bg-slate-100 border rounded" placeholder="Klik Generate">
+                <button type="button" onclick="generateKey()" class="bg-blue-100 text-blue-600 px-4 rounded hover:bg-blue-200">Generate</button>
+            </div>
 
-  <div class="wrapper">
-    <textarea id="apiKeyArea" readonly placeholder="Your API key will appear here..."></textarea>
-    <button id="copyBtn" class="copy-btn">Copy</button>
-  </div>
+            <button type="submit" id="btnSimpan" disabled class="w-full bg-slate-300 text-white font-bold py-3 rounded mt-4 cursor-not-allowed">Simpan Data</button>
+        </form>
+        <div class="mt-4 text-center">
+            <a href="login.html" class="text-blue-600 hover:underline">Login Admin</a>
+        </div>
+    </div>
 
-  <p id="statusMsg" class="error"></p>
-
-  <script>
-    const createBtn = document.getElementById("createBtn");
-    const apiKeyArea = document.getElementById("apiKeyArea");
-    const copyBtn = document.getElementById("copyBtn");
-    const statusMsg = document.getElementById("statusMsg");
-
-    createBtn.addEventListener("click", async () => {
-      statusMsg.textContent = "";
-      apiKeyArea.value = "Generating API key...";
-
-      try {
-        const res = await fetch("/apikeyc/create", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        const data = await res.json();
-
-        if (data.success) {
-          apiKeyArea.value = data.apiKey;
-          statusMsg.textContent = "";
-        } else {
-          apiKeyArea.value = "";
-          statusMsg.textContent = "Gagal membuat API key!";
+    <script>
+        function generateKey() {
+            document.getElementById('apiKey').value = [...Array(32)].map(() => Math.random().toString(36)[2]).join('');
+            const btn = document.getElementById('btnSimpan');
+            btn.disabled = false;
+            btn.className = "w-full bg-blue-600 text-white font-bold py-3 rounded mt-4 hover:bg-blue-700 transition";
         }
-      } catch (err) {
-        console.error("Error:", err);
-        apiKeyArea.value = "";
-        statusMsg.textContent = "Gagal membuat API key!";
-      }
-    });
 
-    copyBtn.addEventListener("click", () => {
-      const text = apiKeyArea.value;
-      if (!text) return;
-
-      navigator.clipboard.writeText(text).then(() => {
-        copyBtn.textContent = "Copied!";
-        setTimeout(() => (copyBtn.textContent = "Copy"), 1500);
-      });
-    });
-  </script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                email: document.getElementById('email').value
+            };
+            const res = await fetch('/register', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if(result.success) { alert('User & API Key Berhasil Disimpan!'); location.reload(); }
+            else { alert('Gagal: ' + result.message); }
+        });
+    </script>
 </body>
 </html>

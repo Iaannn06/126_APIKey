@@ -1,127 +1,57 @@
 const express = require('express');
-const path = require('path');
+const cors = require('cors');
 const crypto = require('crypto');
-const db = require('./db'); 
 const app = express();
 const port = 3000;
+const db = require('./models');
 
-
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(cors());
 app.use(express.json());
+app.use(express.static('public')); // Folder frontend
 
+// 1. REGISTER & GENERATE KEY
+app.post('/register', async (req, res) => {
+    try {
+        const { firstName, lastName, email } = req.body;
+        // Generate Key Acak
+        const newApiKey = crypto.randomBytes(16).toString('hex');
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-
-app.post('/apikeyc/create', (req, res) => {
-  try {
-    const rawKey = crypto.randomBytes(32).toString('hex');
-    const apiKey = `sk-itumy-v1-api_${rawKey}`;
-
-    const query = 'INSERT INTO apikeys (api_key) VALUES (?)';
-    db.query(query, [apiKey], (err, result) => {
-      if (err) {
-        console.error('❌ Gagal menyimpan API key:', err);
-        return res.status(500).json({
-          success: false,
-          message: 'Gagal menyimpan API key ke database'
+        const newUser = await db.User.create({
+            firstName, lastName, email, api_key: newApiKey, status: 'Aktif'
         });
-      }
-
-      res.json({
-        success: true,
-        apiKey: apiKey
-      });
-    });
-  } catch (err) {
-    console.error('Error generate API key:', err);
-    res.status(500).json({
-      success: false,
-      message: 'Terjadi kesalahan saat membuat API key'
-    });
-  }
+        res.status(201).json({ success: true, message: 'Berhasil', data: newUser });
+    } catch (error) {
+        res.status(500).json({ message: 'Gagal menyimpan user (Email mungkin duplikat)' });
+    }
 });
 
-app.post('/validate', (req, res) => {
-  const { apiKey } = req.body;
-
-  if (!apiKey) {
-    return res.status(400).json({
-      success: false,
-      message: 'API key tidak ditemukan dalam request body'
-    });
-  }
-
-  db.query('SELECT * FROM apikeys WHERE api_key = ?', [apiKey], (err, results) => {
-    if (err) {
-      console.error('Error saat validasi:', err);
-      return res.status(500).json({ success: false, message: 'Kesalahan server' });
-    }
-
-    if (results.length > 0) {
-      res.json({ success: true, message: 'API key valid!' });
+// 2. ADMIN LOGIN
+app.post('/admin-login', (req, res) => {
+    const { email, password } = req.body;
+    // Login Hardcode
+    if (email === 'admin@admin.com' && password === 'admin') {
+        res.json({ success: true });
     } else {
-      res.status(401).json({ success: false, message: 'API key tidak valid!' });
+        res.status(401).json({ success: false, message: 'Login Gagal' });
     }
-  });
 });
 
-app.post("/generate", (req, res) => {
-  const apiKey = `sk-itumy-v1-api_${crypto.randomBytes(16).toString("hex")}`;
-  const sql = "INSERT INTO apikeys (api_key) VALUES (?)";
-
-  db.query(sql, [apiKey], (err, result) => {
-    if (err) {
-      console.error("Error insert API key:", err);
-      return res.status(500).json({ success: false, message: "Gagal membuat API key!" });
-    }
-    res.json({ success: true, message: "API Key berhasil dibuat!", apiKey });
-  });
+// 3. GET ALL USERS (Untuk Dashboard)
+app.get('/users', async (req, res) => {
+    const users = await db.User.findAll();
+    res.json(users);
 });
 
-app.post('/checkapi', (req, res) => {
-  try {
-    const { apiKey } = req.body;
-
-    if (!apiKey) {
-      return res.status(400).json({
-        success: false,
-        message: 'API key tidak ditemukan dalam request body'
-      });
+// 4. DELETE USER
+app.delete('/users/:id', async (req, res) => {
+    try {
+        await db.User.destroy({ where: { id: req.params.id } });
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ message: 'Gagal hapus' });
     }
-
-    const query = 'SELECT * FROM apikeys WHERE api_key = ?';
-    db.query(query, [apiKey], (err, results) => {
-      if (err) {
-        console.error('❌ Error saat cek API key:', err);
-        return res.status(500).json({
-          success: false,
-          message: 'Terjadi kesalahan saat memeriksa API key'
-        });
-      }
-
-      if (results.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'API key tidak valid atau tidak terdaftar'
-        });
-      }
-
-      res.json({
-        success: true,
-        message: 'API key valid dan terdaftar di database'
-      });
-    });
-  } catch (err) {
-    console.error('Error checking API key:', err);
-    res.status(500).json({
-      success: false,
-      message: 'Terjadi kesalahan saat memeriksa API key'
-    });
-  }
 });
+
 
 app.listen(port, () => {
   console.log(`🚀 Server berjalan di http://localhost:${port}`);
